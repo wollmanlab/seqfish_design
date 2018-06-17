@@ -5,6 +5,26 @@ import numpy
 fname = sys.argv[1]
 fname_out = sys.argv[2]
 
+def select_best_isoform(isodf, columns = {'length': 'l',
+                                          'isofract': 'isofract', 
+                                          'expression': 'FPKM'}, 
+                       accepted_length=3000):
+    isodf = isodf.sort_values([columns['isofract'], columns['length']], ascending=False)
+    length_sort = np.argsort(isodf[columns['length']].values)[::-1]
+    length_ranks = np.empty_like(length_sort)
+    length_ranks[length_sort] = np.arange(len(length_sort))
+    #length_rank = np.argsort(isodf[columns['length']])[::-1]
+    isodf['lrank'] = length_ranks
+    #pdb.set_trace()
+    if isodf.iloc[0]['lrank']==0:
+        return isodf.iloc[0]
+    elif isodf.iloc[0][columns['length']] >= accepted_length:
+        
+        return isodf.iloc[0]
+    else:
+        return isodf.iloc[:3].sort_values('lrank').iloc[0]
+        
+
 def remove_ensembl_version(fname):
   with open(fname, 'r') as f:
       with open(fname_out, 'w') as w:
